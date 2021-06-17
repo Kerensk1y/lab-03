@@ -3,12 +3,6 @@
 #include "histogram.h"
 #include "svg.h"
 
-struct Input
-{
-    vector<double> numbers;
-    size_t bin_count;
-};
-
 const size_t SCREEN_WIDTH = 80;
 const size_t MAX_ASTERISK = SCREEN_WIDTH - 3 - 1;
 
@@ -36,40 +30,6 @@ read_input(istream& in)
     cerr << "Enter quantity of bins: ";
     cin >> data.bin_count;
     return data;
-}
-
-
-
-
-const vector<size_t>
-make_histogram(const vector<double>& numbers, size_t bin_count)
-{
-    double min;
-    double max;
-    vector<size_t> bins(bin_count);
-
-    find_minmax(numbers, min, max);
-
-    double bin_size = (max - min) / bins.size();
-    for (size_t i = 0; i < numbers.size(); i++)
-    {
-        bool found = false;
-        for (size_t j = 0; (j < bins.size() - 1) && !found; j++)
-        {
-            auto low = min + j * bin_size;
-            auto high = min + (j + 1) * bin_size;
-            if ((numbers[i] >= low) && (numbers[i] < high))
-            {
-                bins[j]++;
-                found = true;
-            }
-        }
-        if (!found)
-        {
-            bins[bins.size() - 1]++;
-        }
-    }
-    return bins;
 }
 
 void
@@ -124,7 +84,7 @@ show_histogram_text(const vector<size_t> bins)
 int main()
 {
     const auto input = read_input(cin);
-    const vector<size_t> bins = make_histogram(input.numbers, input.bin_count);
+    const vector<size_t> bins = make_histogram(input);
     // show_histogram_text(bins);
     show_histogram_svg(bins);
 }
