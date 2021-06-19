@@ -96,15 +96,22 @@ main(int argc, char* argv[])
 {
     if (argc > 1)
     {
-        cerr << "argc = " << argc << endl;
-        for (int i = 0; i < argc; i++)
+        CURL* curl = curl_easy_init();
+        if(curl)
         {
-            cerr << "argv[" << i << "] = " << argv[i] << endl;
+            CURLcode res;
+            curl_easy_setopt(curl, CURLOPT_URL, argv[1]);
+            /* ask libcurl to show us the verbose output */
+            // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+            res = curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+
         }
         return 0;
     }
 
-    curl_global_init(CURL_GLOBAL_ALL);
+    // curl_global_init(CURL_GLOBAL_ALL);
     const auto input = read_input(cin, true);
     const vector<size_t> bins = make_histogram(input);
     // show_histogram_text(bins);
