@@ -2,6 +2,7 @@
 #include <vector>
 #include "histogram.h"
 #include "svg.h"
+#include <curl/curl.h>
 
 const size_t SCREEN_WIDTH = 80;
 const size_t MAX_ASTERISK = SCREEN_WIDTH - 3 - 1;
@@ -19,16 +20,25 @@ input_numbers(istream& in, size_t count)
 }
 
 Input
-read_input(istream& in)
+read_input(istream& in, bool prompt)
 {
     Input data;
-    cerr << "Enter number count: ";
     size_t number_count;
+    if (prompt == true)
+    {
+        cerr << "Enter number count: ";
+    }
     in >> number_count;
-    cerr << "Enter numbers: ";
+    if (prompt == true)
+    {
+        cerr << "Enter numbers: ";
+    }
     data.numbers = input_numbers(in, number_count);
-    cerr << "Enter quantity of bins: ";
-    cin >> data.bin_count;
+    if (prompt == true)
+    {
+        cerr << "Enter quantity of bins: ";
+    }
+    in >> data.bin_count;
     return data;
 }
 
@@ -81,9 +91,33 @@ show_histogram_text(const vector<size_t> bins)
     }
 }
 
-int main()
+int
+main(int argc, char* argv[])
 {
-    const auto input = read_input(cin);
+    if (argc > 1)
+    {
+        CURL* curl = curl_easy_init();
+        if(curl)
+        {
+            CURLcode res;
+            curl_easy_setopt(curl, CURLOPT_URL, argv[1]);
+            /* ask libcurl to show us the verbose output */
+            // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+            res = curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+            if (res != CURLE_OK)
+            {
+                cerr << curl_easy_strerror(res);
+                exit(1);
+            }
+
+        }
+        return 0;
+    }
+
+    // curl_global_init(CURL_GLOBAL_ALL);
+    const auto input = read_input(cin, true);
     const vector<size_t> bins = make_histogram(input);
     // show_histogram_text(bins);
     show_histogram_svg(bins);
