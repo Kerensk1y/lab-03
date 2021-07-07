@@ -10,12 +10,15 @@ const size_t SCREEN_WIDTH = 80;
 const size_t MAX_ASTERISK = SCREEN_WIDTH - 3 - 1;
 
 vector<double>
-input_numbers(istream& in, size_t count)
+input_numbers(istream& in, size_t count, bool prompt)
 {
     vector<double> result(count);
     for (size_t i = 0; i < count; i++)
     {
-        cerr << "Enter " << i + 1 << " number:\t";
+        if (prompt == true)
+        {
+            cerr << "Enter " << i + 1 << " number:\t";
+        }
         in >> result[i];
     }
     return result;
@@ -35,7 +38,7 @@ read_input(istream& in, bool prompt)
     {
         cerr << "Enter numbers: ";
     }
-    data.numbers = input_numbers(in, number_count);
+    data.numbers = input_numbers(in, number_count, prompt);
     if (prompt == true)
     {
         cerr << "Enter quantity of bins: ";
@@ -47,23 +50,22 @@ read_input(istream& in, bool prompt)
 size_t
 write_data(void* items, size_t item_size, size_t item_count, void* ctx)
 {
-    // TODO: дописывать данные к буферу.
     size_t data_size = item_size*item_count;
     stringstream *buffer = reinterpret_cast<stringstream*>(ctx);
     buffer->write((const char*) items, data_size);
     return data_size;
 }
 
+
 Input
 download(const string& address)
 {
     stringstream buffer;
-
     CURL* curl = curl_easy_init();
     if(curl)
     {
         CURLcode res;
-        curl_easy_setopt(curl, CURLOPT_URL, address);
+        curl_easy_setopt(curl, CURLOPT_URL, address.c_str());
         /* ask libcurl to show us the verbose output */
         // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
@@ -73,10 +75,15 @@ download(const string& address)
         curl_easy_cleanup(curl);
         if (res != CURLE_OK)
         {
-            cerr << curl_easy_strerror(res);
+            cerr << "error: " << curl_easy_strerror(res);
             exit(1);
         }
-
+        double namelookup;
+        res = curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &namelookup);
+        if(CURLE_OK == res)
+        {
+            cerr << "Name lookup time: " << namelookup << " s" << endl;
+        }
     }
 
     return read_input(buffer, false);
